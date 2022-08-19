@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hzh.dao.SetmealDao">
+    <resultMap id="baseResultMap" type="com.hzh.pojo.Setmeal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="helpCode" property="helpCode"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="price" property="price"/>
+        <result column="remark" property="remark"/>
+        <result column="attention" property="attention"/>
+        <result column="img" property="img"/>
+    </resultMap>
+    <resultMap id="findByIdResultMap" type="com.hzh.pojo.Setmeal" extends="baseResultMap">
+        <!--多对多映射-->
+        <collection property="checkGroups"
+                    ofType="com.hzh.pojo.CheckGroup"
+                    select="com.hzh.dao.CheckGroupDao.findCheckGroupsById"
+                    column="id">
+
+        </collection>
+    </resultMap>
+    <insert id="add" parameterType="com.hzh.pojo.Setmeal">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into t_setmeal(code,name,sex,helpCode,remark,attention,age,price,img)
+        values
+        (#{code},#{name},#{sex},#{helpCode},#{remark},#{attention},#{age},#{price},#{img})
+    </insert>
+    <insert id="setSetmealAndCheckGroup" parameterType="hashmap">
+        insert into t_setmeal_checkgroup(setmeal_id,checkgroup_id)
+        values
+            (#{setmealId},#{checkgroupId})
+    </insert>
+    <select id="selectByCondition" parameterType="string" resultType="com.hzh.pojo.Setmeal">
+        select * from t_setmeal
+        <if test="value != null and value.length > 0">
+            where code = #{value} or name = #{value} or helpCode = #{value}
+        </if>
+    </select>
+    <select id="findAll" resultType="com.hzh.pojo.Setmeal">
+        select * from t_setmeal;
+    </select>
+    <select id="findById" resultMap="findByIdResultMap" parameterType="integer">
+        select * from t_setmeal where id=#{id};
+    </select>
+    <select id="findSetmealCount" resultType="java.util.Map">
+        select s.name,count(o.id) as value from t_order o,t_setmeal s
+        where o.setmeal_id=s.id
+        group by s.name;
+    </select>
+</mapper>
